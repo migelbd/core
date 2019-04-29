@@ -80,47 +80,7 @@ abstract class SystemCommand extends Command
             return $this->privateChat($msg, $chat, $msg->getFrom());
         }
 
-        return parent::execute();
-    }
-
-
-    /**
-     * Super Group
-     * @param Message $msg
-     * @param Chat $chat
-     * @param User $from
-     * @return mixed
-     * @throws TelegramException
-     */
-    public function superChat($msg, $chat, $from)
-    {
         return Request::emptyResponse();
     }
 
-
-    /**
-     * Group Chat
-     * @param Message $msg
-     * @param Chat $chat
-     * @param User $from
-     * @return mixed
-     * @throws TelegramException
-     */
-    public function groupChat($msg, $chat, $from)
-    {
-        return Request::emptyResponse();
-    }
-
-
-    /** Private Chat
-     * @param Message $msg
-     * @param Chat $chat
-     * @param User $from
-     * @return mixed
-     * @throws TelegramException
-     */
-    public function privateChat($msg, $chat, $from)
-    {
-        return Request::emptyResponse();
-    }
 }

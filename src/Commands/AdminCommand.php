@@ -10,7 +10,11 @@
 
 namespace Longman\TelegramBot\Commands;
 
+use Longman\TelegramBot\Entities\Chat;
+use Longman\TelegramBot\Entities\Message;
 use Longman\TelegramBot\Entities\Update;
+use Longman\TelegramBot\Entities\User;
+use Longman\TelegramBot\Exception\TelegramException;
 use Longman\TelegramBot\Request;
 use Longman\TelegramBot\Telegram;
 
@@ -61,4 +65,27 @@ abstract class AdminCommand extends Command
 
         return $this->execute();
     }
+
+    public function execute()
+    {
+        $msg = $this->getMessage();
+        $chat = $msg->getChat();
+
+        if ( $chat->isSuperGroup() ) {
+            return $this->superChat($msg, $chat, $msg->getFrom());
+        }
+
+        if ( $chat->isGroupChat() ) {
+            return $this->groupChat($msg, $chat, $msg->getFrom());
+        }
+
+        if ( $chat->isPrivateChat() ) {
+            return $this->privateChat($msg, $chat, $msg->getFrom());
+        }
+
+        return Request::emptyResponse();
+    }
+
+
+
 }

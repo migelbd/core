@@ -12,10 +12,13 @@ namespace Longman\TelegramBot\Commands;
 
 use Longman\TelegramBot\DB;
 use Longman\TelegramBot\Entities\CallbackQuery;
+use Longman\TelegramBot\Entities\Chat;
 use Longman\TelegramBot\Entities\ChosenInlineResult;
 use Longman\TelegramBot\Entities\InlineQuery;
 use Longman\TelegramBot\Entities\Message;
 use Longman\TelegramBot\Entities\Update;
+use Longman\TelegramBot\Entities\User;
+use Longman\TelegramBot\Exception\TelegramException;
 use Longman\TelegramBot\Request;
 use Longman\TelegramBot\Telegram;
 
@@ -424,6 +427,46 @@ abstract class Command
             ], $data));
         }
 
+        return Request::emptyResponse();
+    }
+
+    /**
+     * Super Group
+     * @param Message $msg
+     * @param Chat $chat
+     * @param User $from
+     * @return mixed
+     * @throws TelegramException
+     */
+    public function superChat($msg, $chat, $from)
+    {
+        return Request::emptyResponse();
+    }
+
+
+    /**
+     * Group Chat
+     * @param Message $msg
+     * @param Chat $chat
+     * @param User $from
+     * @return mixed
+     * @throws TelegramException
+     */
+    public function groupChat($msg, $chat, $from)
+    {
+        return Request::emptyResponse();
+    }
+
+
+    /** Private Chat
+     * @param Message $msg
+     * @param Chat $chat
+     * @param User $from
+     * @return mixed
+     * @throws TelegramException
+     */
+    public function privateChat($msg, $chat, $from)
+    {
         return Request::emptyResponse();
     }
 }
