@@ -11,12 +11,25 @@ use Longman\TelegramBot\Entities\Message;
 use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Entities\User;
 use Longman\TelegramBot\Exception\TelegramException;
-use MongoDB\Client;
+use MongoDB\Database;
 
+/**
+ * Class Req
+ * @package Longman\TelegramBot
+ */
 class Req
 {
+    /**
+     *
+     */
     public const HTML = 'html';
+    /**
+     *
+     */
     public const MARKDOWN = 'markdown';
+    /**
+     *
+     */
     public const S_DEFAULT = 'default';
 
     /**
@@ -36,15 +49,18 @@ class Req
      */
     protected $parse_mode;
 
+    /**
+     * @var Database|null
+     */
     protected $db;
 
 
     /**
      * Req constructor.
      *
-     * @param $chat_id
+     * @param int $chat_id
      * @param Telegram $telegram
-     * @param Client $db
+     * @param Database $db
      */
     public function __construct($chat_id, $telegram, $db = null)
     {
@@ -60,7 +76,7 @@ class Req
 
 
     /**
-     * @param Message $msg
+     * @param Message|int $msg
      *
      * @return \TgBot\Utils\Req
      */
@@ -115,7 +131,7 @@ class Req
 
 
     /**
-     * @param $text
+     * @param string $text
      * @param bool $dis_notif
      * @param bool $dis_web
      *
@@ -144,6 +160,12 @@ class Req
     }
 
 
+    /**
+     * @param int $from_chat
+     * @param int $from_msg_id
+     * @param bool $dis_notif
+     * @return ServerResponse
+     */
     public function ForwardMessage($from_chat, $from_msg_id, $dis_notif = false): ServerResponse
     {
         $data = ['chat_id' => $this->chat_id, 'from_chat_id' => $from_chat, 'message_id' => $from_msg_id];
@@ -154,6 +176,13 @@ class Req
     }
 
 
+    /**
+     * @param string $photo_path
+     * @param bool $text
+     * @param bool $dis_notif
+     * @param bool $dis_web
+     * @return bool|ServerResponse
+     */
     public function SendPhoto($photo_path, $text = false, $dis_notif = false, $dis_web = false)
     {
         try {
@@ -187,6 +216,13 @@ class Req
     }
 
 
+    /**
+     * @param string $photo_id
+     * @param bool $text
+     * @param bool $dis_notif
+     * @param bool $dis_web
+     * @return ServerResponse
+     */
     public function SendPhotoFileId($photo_id, $text = false, $dis_notif = false, $dis_web = false): ServerResponse
     {
         $data = ['chat_id' => $this->chat_id];
@@ -212,6 +248,12 @@ class Req
     }
 
 
+    /**
+     * @param string|int $call_id
+     * @param string $text
+     * @param bool $show_alert
+     * @return ServerResponse
+     */
     public static function Callback($call_id, $text, $show_alert = false): ServerResponse
     {
         $data = [
@@ -226,8 +268,8 @@ class Req
 
 
     /**
-     * @param $msg_id
-     * @param $text
+     * @param int $msg_id
+     * @param string $text
      * @param bool $dis_web
      *
      * @return ServerResponse
@@ -248,8 +290,8 @@ class Req
 
 
     /**
-     * @param $msg_id
-     * @param $text
+     * @param int $msg_id
+     * @param string $text
      *
      * @return ServerResponse
      */
@@ -267,6 +309,10 @@ class Req
     }
 
 
+    /**
+     * @param int $msg_id
+     * @return ServerResponse
+     */
     public function EditKeys($msg_id): ServerResponse
     {
         $data = [
@@ -279,6 +325,15 @@ class Req
     }
 
 
+    /**
+     * @param int $user_id
+     * @param null|int $until_date
+     * @param null|bool $can_send_messages
+     * @param null|bool $can_send_media_messages
+     * @param null|bool $can_send_other_messages
+     * @param null|bool $can_add_web_page_previews
+     * @return ServerResponse
+     */
     public function Restrict($user_id, $until_date = null, $can_send_messages = null, $can_send_media_messages = null, $can_send_other_messages = null, $can_add_web_page_previews = null): ServerResponse
     {
         $data = [
@@ -303,6 +358,11 @@ class Req
     }
 
 
+    /**
+     * @param int $user_id
+     * @param null|string|int $until_date
+     * @return ServerResponse
+     */
     public function Kick($user_id, $until_date = null): ServerResponse
     {
         $data = [
@@ -315,6 +375,12 @@ class Req
     }
 
 
+    /**
+     * @param Message|int $msg
+     * @param null|int $time
+     * @param array $options
+     * @return ServerResponse
+     */
     public function Delete($msg, $time = null, $options = ['kick' => false])
     {
         if ( $time === null ) {
@@ -331,7 +397,7 @@ class Req
             return Request::deleteMessage($data);
         }
 
-        return $this->db->statchat->msg_del->insertOne(
+        return $this->db->delete_messages->insertOne(
             [
                 'chat_id' => $this->chat_id,
                 'msg'     => $msg,
@@ -342,6 +408,11 @@ class Req
     }
 
 
+    /**
+     * @param Message|int $msg
+     * @param bool|null $dis_notif
+     * @return ServerResponse
+     */
     public function pinChatMessage($msg, $dis_notif = null): ServerResponse
     {
         $data = [
@@ -362,6 +433,9 @@ class Req
     }
 
 
+    /**
+     * @return ServerResponse
+     */
     public function unpinChatMessage(): ServerResponse
     {
         $data = [
@@ -372,6 +446,10 @@ class Req
     }
 
 
+    /**
+     * @param string $file_id
+     * @return ServerResponse
+     */
     public function getFile($file_id): ServerResponse
     {
         return Request::getFile(['file_id' => $file_id]);
@@ -395,6 +473,9 @@ class Req
     }
 
 
+    /**
+     * @return ServerResponse
+     */
     public function leaveChat(): ServerResponse
     {
         $data = [

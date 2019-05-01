@@ -23,6 +23,7 @@ abstract class UserCommand extends Command
     protected $name = false;
     protected $show_in_help = false;
     protected $usage = false;
+    protected $delete = false;
 
 
     public function __construct(Telegram $telegram, Update $update = null)
@@ -61,6 +62,7 @@ abstract class UserCommand extends Command
         return $this->execute();
     }
 
+
     public function execute()
     {
         $msg = $this->getMessage();
@@ -78,7 +80,22 @@ abstract class UserCommand extends Command
             return $this->privateChat($msg, $chat, $msg->getFrom());
         }
 
+        if ($this->delete){
+            $this->deleteCmdMessage();
+        }
         return Request::emptyResponse();
+    }
+
+
+    public function deleteCmdMessage()
+    {
+        $msg = $this->getMessage();
+        return Request::deleteMessage(
+            [
+                'chat_id'    => $msg->getChat()->getId(),
+                'message_id' => $msg->getMessageId(),
+            ]
+        );
     }
 
 }
