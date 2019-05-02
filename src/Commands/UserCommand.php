@@ -68,22 +68,23 @@ abstract class UserCommand extends Command
         $msg = $this->getMessage();
         $chat = $msg->getChat();
 
+        $response = Request::emptyResponse();
         if ( $chat->isSuperGroup() ) {
-            return $this->superChat($msg, $chat, $msg->getFrom());
+            $response = $this->superChat($msg, $chat, $msg->getFrom());
         }
 
         if ( $chat->isGroupChat() ) {
-            return $this->groupChat($msg, $chat, $msg->getFrom());
+            $response = $this->groupChat($msg, $chat, $msg->getFrom());
         }
 
         if ( $chat->isPrivateChat() ) {
-            return $this->privateChat($msg, $chat, $msg->getFrom());
+            $response = $this->privateChat($msg, $chat, $msg->getFrom());
         }
 
         if ($this->delete){
             $this->deleteCmdMessage();
         }
-        return Request::emptyResponse();
+        return $response;
     }
 
 
