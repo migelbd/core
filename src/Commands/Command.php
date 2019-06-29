@@ -16,6 +16,10 @@ use Longman\TelegramBot\Entities\Chat;
 use Longman\TelegramBot\Entities\ChosenInlineResult;
 use Longman\TelegramBot\Entities\InlineQuery;
 use Longman\TelegramBot\Entities\Message;
+use Longman\TelegramBot\Entities\Payments\PreCheckoutQuery;
+use Longman\TelegramBot\Entities\Payments\ShippingQuery;
+use Longman\TelegramBot\Entities\Poll;
+use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Entities\Update;
 use Longman\TelegramBot\Entities\User;
 use Longman\TelegramBot\Exception\TelegramException;
@@ -34,20 +38,23 @@ use Longman\TelegramBot\Telegram;
  * @method InlineQuery         getInlineQuery()        Optional. New incoming inline query
  * @method ChosenInlineResult  getChosenInlineResult() Optional. The result of an inline query that was chosen by a user and sent to their chat partner.
  * @method CallbackQuery       getCallbackQuery()      Optional. New incoming callback query
+ * @method ShippingQuery       getShippingQuery()      Optional. New incoming shipping query. Only for invoices with flexible price
+ * @method PreCheckoutQuery    getPreCheckoutQuery()   Optional. New incoming pre-checkout query. Contains full information about checkout
+ * @method Poll                getPoll()               Optional. New poll state. Bots receive only updates about polls, which are sent or stopped by the bot
  */
 abstract class Command
 {
     /**
      * Telegram object
      *
-     * @var \Longman\TelegramBot\Telegram
+     * @var Telegram
      */
     protected $telegram;
 
     /**
      * Update object
      *
-     * @var \Longman\TelegramBot\Entities\Update
+     * @var Update
      */
     protected $update;
 
@@ -117,8 +124,8 @@ abstract class Command
     /**
      * Constructor
      *
-     * @param \Longman\TelegramBot\Telegram        $telegram
-     * @param \Longman\TelegramBot\Entities\Update $update
+     * @param Telegram $telegram
+     * @param Update   $update
      */
     public function __construct(Telegram $telegram, Update $update = null)
     {
@@ -130,9 +137,9 @@ abstract class Command
     /**
      * Set update object
      *
-     * @param \Longman\TelegramBot\Entities\Update $update
+     * @param Update $update
      *
-     * @return \Longman\TelegramBot\Commands\Command
+     * @return Command
      */
     public function setUpdate(Update $update = null)
     {
@@ -146,8 +153,8 @@ abstract class Command
     /**
      * Pre-execute command
      *
-     * @return \Longman\TelegramBot\Entities\ServerResponse
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @return ServerResponse
+     * @throws TelegramException
      */
     public function preExecute()
     {
@@ -179,16 +186,16 @@ abstract class Command
     /**
      * Execute command
      *
-     * @return \Longman\TelegramBot\Entities\ServerResponse
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @return ServerResponse
+     * @throws TelegramException
      */
     abstract public function execute();
 
     /**
      * Execution if MySQL is required but not available
      *
-     * @return \Longman\TelegramBot\Entities\ServerResponse
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @return ServerResponse
+     * @throws TelegramException
      */
     public function executeNoDb()
     {
@@ -207,7 +214,7 @@ abstract class Command
     /**
      * Get update object
      *
-     * @return \Longman\TelegramBot\Entities\Update
+     * @return Update
      */
     public function getUpdate()
     {
@@ -257,7 +264,7 @@ abstract class Command
     /**
      * Get telegram object
      *
-     * @return \Longman\TelegramBot\Telegram
+     * @return Telegram
      */
     public function getTelegram()
     {
@@ -407,6 +414,13 @@ abstract class Command
 
 
     /**
+     * Helper to reply to a user directly.
+     *
+     * @param string $text
+     * @param array  $data
+     *
+     * @return ServerResponse
+     * @throws TelegramException
      * Group Chat
      * @param Message $msg
      * @param Chat $chat

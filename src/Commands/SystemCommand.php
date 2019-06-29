@@ -10,12 +10,14 @@
 
 namespace Longman\TelegramBot\Commands;
 
+use Longman\TelegramBot\Entities\ServerResponse;
+use Longman\TelegramBot\Request;
 use Longman\TelegramBot\Entities\Chat;
 use Longman\TelegramBot\Entities\Message;
 use Longman\TelegramBot\Entities\Update;
 use Longman\TelegramBot\Entities\User;
 use Longman\TelegramBot\Exception\TelegramException;
-use Longman\TelegramBot\Request;
+
 use Longman\TelegramBot\Telegram;
 
 abstract class SystemCommand extends Command

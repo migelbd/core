@@ -42,6 +42,7 @@ use Longman\TelegramBot\Exception\TelegramException;
  * @method static ServerResponse stopMessageLiveLocation(array $data) Use this method to stop updating a live location message sent by the bot or via the bot (for inline bots) before live_period expires. On success, if the message was sent by the bot, the sent Message is returned, otherwise True is returned.
  * @method static ServerResponse sendVenue(array $data)               Use this method to send information about a venue. On success, the sent Message is returned.
  * @method static ServerResponse sendContact(array $data)             Use this method to send phone contacts. On success, the sent Message is returned.
+ * @method static ServerResponse sendPoll(array $data)                Use this method to send a native poll. A native poll can't be sent to a private chat. On success, the sent Message is returned.
  * @method static ServerResponse sendChatAction(array $data)          Use this method when you need to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Returns True on success.
  * @method static ServerResponse getUserProfilePhotos(array $data)    Use this method to get a list of profile pictures for a user. Returns a UserProfilePhotos object.
  * @method static ServerResponse getFile(array $data)                 Use this method to get basic info about a file and prepare it for downloading. For the moment, bots can download files of up to 20MB in size. On success, a File object is returned. The file can then be downloaded via the link https://api.telegram.org/file/bot<token>/<file_path>, where <file_path> is taken from the response. It is guaranteed that the link will be valid for at least 1 hour. When the link expires, a new one can be requested by calling getFile again.
@@ -69,6 +70,7 @@ use Longman\TelegramBot\Exception\TelegramException;
  * @method static ServerResponse editMessageCaption(array $data)      Use this method to edit captions of messages sent by the bot or via the bot (for inline bots). On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
  * @method static ServerResponse editMessageMedia(array $data)        Use this method to edit audio, document, photo, or video messages. On success, if the edited message was sent by the bot, the edited Message is returned, otherwise True is returned.
  * @method static ServerResponse editMessageReplyMarkup(array $data)  Use this method to edit only the reply markup of messages sent by the bot or via the bot (for inline bots). On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
+ * @method static ServerResponse stopPoll(array $data)                Use this method to stop a poll which was sent by the bot. On success, the stopped Poll with the final results is returned.
  * @method static ServerResponse deleteMessage(array $data)           Use this method to delete a message, including service messages, with certain limitations. Returns True on success.
  * @method static ServerResponse getStickerSet(array $data)           Use this method to get a sticker set. On success, a StickerSet object is returned.
  * @method static ServerResponse uploadStickerFile(array $data)       Use this method to upload a .png file with a sticker for later use in createNewStickerSet and addStickerToSet methods (can be used multiple times). Returns the uploaded File on success.
@@ -89,7 +91,7 @@ class Request
     /**
      * Telegram object
      *
-     * @var \Longman\TelegramBot\Telegram
+     * @var Telegram
      */
     private static $telegram;
 
@@ -103,7 +105,7 @@ class Request
     /**
      * Guzzle Client object
      *
-     * @var \GuzzleHttp\Client
+     * @var Client
      */
     private static $client;
 
@@ -166,6 +168,7 @@ class Request
         'stopMessageLiveLocation',
         'sendVenue',
         'sendContact',
+        'sendPoll',
         'sendChatAction',
         'getUserProfilePhotos',
         'getFile',
@@ -193,6 +196,7 @@ class Request
         'editMessageCaption',
         'editMessageMedia',
         'editMessageReplyMarkup',
+        'stopPoll',
         'deleteMessage',
         'getStickerSet',
         'uploadStickerFile',
@@ -249,7 +253,7 @@ class Request
     /**
      * Initialize
      *
-     * @param \Longman\TelegramBot\Telegram $telegram
+     * @param Telegram $telegram
      *
      * @throws TelegramException
      */
@@ -283,7 +287,7 @@ class Request
      * Set input from custom input or stdin and return it
      *
      * @return string
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     public static function getInput()
     {
@@ -373,7 +377,7 @@ class Request
             }
 
             // Reformat data array in multipart way if it contains a resource
-            $has_resource |= (is_resource($item) || $item instanceof Stream);
+            $has_resource = $has_resource || is_resource($item) || $item instanceof Stream;
             $multipart[]  = ['name' => $key, 'contents' => $item];
         }
 
@@ -417,6 +421,7 @@ class Request
      * @param array $multipart
      *
      * @return mixed
+     * @throws TelegramException
      */
     private static function mediaInputHelper($item, &$has_resource, array &$multipart)
     {
@@ -468,7 +473,7 @@ class Request
      * @param array  $data   Data to attach to the execution
      *
      * @return string Result of the HTTP Request
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     public static function execute($action, array $data = [])
     {
@@ -505,10 +510,10 @@ class Request
     /**
      * Download file
      *
-     * @param \Longman\TelegramBot\Entities\File $file
+     * @param File $file
      *
      * @return boolean
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     public static function downloadFile(File $file)
     {
@@ -536,7 +541,7 @@ class Request
 
             return filesize($file_path) > 0;
         } catch (RequestException $e) {
-            return ($e->getResponse()) ? (string) $e->getResponse()->getBody() : '';
+            return false;
         } finally {
             //Logging verbose debug output
             TelegramLog::endDebugLogTempStream('Verbose HTTP File Download Request output:' . PHP_EOL . '%s' . PHP_EOL);
@@ -549,7 +554,7 @@ class Request
      * @param string $file
      *
      * @return resource
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     public static function encodeFile($file)
     {
@@ -570,8 +575,8 @@ class Request
      * @param string $action
      * @param array  $data
      *
-     * @return \Longman\TelegramBot\Entities\ServerResponse
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @return ServerResponse
+     * @throws TelegramException
      */
     public static function send($action, array $data = [])
     {
@@ -639,7 +644,7 @@ class Request
      *
      * @param array $data
      *
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     private static function ensureNonEmptyData(array $data)
     {
@@ -653,7 +658,7 @@ class Request
      *
      * @param string $action
      *
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     private static function ensureValidAction($action)
     {
@@ -669,8 +674,8 @@ class Request
      *
      * @param array $data
      *
-     * @return \Longman\TelegramBot\Entities\ServerResponse
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @return ServerResponse
+     * @throws TelegramException
      */
     public static function sendMessage(array $data)
     {
@@ -694,8 +699,7 @@ class Request
      * @param string $action
      * @param array  $data
      *
-     * @return \Longman\TelegramBot\Entities\ServerResponse
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @return ServerResponse
      */
     public static function __callStatic($action, array $data)
     {
@@ -712,8 +716,7 @@ class Request
      * No request to telegram are sent, this function is used in commands that
      * don't need to fire a message after execution
      *
-     * @return \Longman\TelegramBot\Entities\ServerResponse
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @return ServerResponse
      */
     public static function emptyResponse()
     {
@@ -756,7 +759,7 @@ class Request
      * @param boolean $enable
      * @param array   $options
      *
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     public static function setLimiter($enable = true, array $options = [])
     {
@@ -785,7 +788,7 @@ class Request
      * @param string $action
      * @param array  $data
      *
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     private static function limitTelegramRequests($action, array $data = [])
     {
@@ -807,6 +810,7 @@ class Request
                 'stopMessageLiveLocation',
                 'sendVenue',
                 'sendContact',
+                'sendPoll',
                 'sendInvoice',
                 'sendGame',
                 'setGameScore',
@@ -814,6 +818,7 @@ class Request
                 'editMessageCaption',
                 'editMessageMedia',
                 'editMessageReplyMarkup',
+                'stopPoll',
                 'setChatTitle',
                 'setChatDescription',
                 'setChatStickerSet',
@@ -824,7 +829,7 @@ class Request
             $chat_id           = isset($data['chat_id']) ? $data['chat_id'] : null;
             $inline_message_id = isset($data['inline_message_id']) ? $data['inline_message_id'] : null;
 
-            if (($chat_id || $inline_message_id) && in_array($action, $limited_methods)) {
+            if (($chat_id || $inline_message_id) && in_array($action, $limited_methods, true)) {
                 $timeout = 60;
 
                 while (true) {
@@ -832,18 +837,23 @@ class Request
                         throw new TelegramException('Timed out while waiting for a request spot!');
                     }
 
-                    $requests = DB::getTelegramRequestCount($chat_id, $inline_message_id);
+                    if (!($requests = DB::getTelegramRequestCount($chat_id, $inline_message_id))) {
+                        break;
+                    }
 
-                    $chat_per_second   = ($requests['LIMIT_PER_SEC'] == 0); // No more than one message per second inside a particular chat
-                    $global_per_second = ($requests['LIMIT_PER_SEC_ALL'] < 30);    // No more than 30 messages per second to different chats
-                    $groups_per_minute = (((is_numeric($chat_id) && $chat_id > 0) || !is_null($inline_message_id)) || ((!is_numeric($chat_id) || $chat_id < 0) && $requests['LIMIT_PER_MINUTE'] < 20));    // No more than 20 messages per minute in groups and channels
+                    // Make sure we're handling integers here.
+                    $requests = array_map('intval', $requests);
+
+                    $chat_per_second   = ($requests['LIMIT_PER_SEC'] === 0);    // No more than one message per second inside a particular chat
+                    $global_per_second = ($requests['LIMIT_PER_SEC_ALL'] < 30); // No more than 30 messages per second to different chats
+                    $groups_per_minute = (((is_numeric($chat_id) && $chat_id > 0) || $inline_message_id !== null) || ((!is_numeric($chat_id) || $chat_id < 0) && $requests['LIMIT_PER_MINUTE'] < 20));    // No more than 20 messages per minute in groups and channels
 
                     if ($chat_per_second && $global_per_second && $groups_per_minute) {
                         break;
                     }
 
                     $timeout--;
-                    usleep(self::$limiter_interval * 1000000);
+                    usleep((int) (self::$limiter_interval * 1000000));
                 }
 
                 DB::insertTelegramRequest($action, $data);
