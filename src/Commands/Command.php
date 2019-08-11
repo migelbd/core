@@ -78,6 +78,8 @@ abstract class Command
      */
     protected $description = 'Command description';
 
+    protected $description_full;
+
     /**
      * Usage
      *
@@ -325,6 +327,15 @@ abstract class Command
 
 
     /**
+     * @return mixed
+     */
+    public function getDescriptionFull()
+    {
+        return $this->description_full ?? $this->getDescription();
+    }
+
+
+    /**
      * Get name
      *
      * @return string
@@ -426,6 +437,7 @@ abstract class Command
     {
         return $this->command_type === self::TYPE_ALL;
     }
+
 
     /**
      * Delete the current message if it has been called in a non-private chat.
