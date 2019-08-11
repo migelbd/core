@@ -364,7 +364,7 @@ abstract class Command
      */
     public function isPrivateOnly()
     {
-        return $this->private_only;
+        return $this->isPrivateCommand();
     }
 
 
@@ -400,6 +400,32 @@ abstract class Command
         return ($this instanceof UserCommand);
     }
 
+
+    /**
+     * @return bool
+     */
+    public function isGroupCommand()
+    {
+        return $this->command_type === self::TYPE_GROUP;
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function isPrivateCommand()
+    {
+        return $this->command_type === self::TYPE_PRIVATE;
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function isAllCommand()
+    {
+        return $this->command_type === self::TYPE_ALL;
+    }
 
     /**
      * Delete the current message if it has been called in a non-private chat.
