@@ -44,6 +44,12 @@ use Longman\TelegramBot\Telegram;
  */
 abstract class Command
 {
+
+    const TYPE_GROUP = 'group';
+    const TYPE_PRIVATE = 'private';
+    const TYPE_ALL = 'all';
+
+    protected $command_type = self::TYPE_ALL;
     /**
      * Telegram object
      *
