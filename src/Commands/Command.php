@@ -50,6 +50,7 @@ abstract class Command
     const TYPE_ALL = 'all';
 
     protected $command_type = self::TYPE_ALL;
+    protected $only_admins = false;
     /**
      * Telegram object
      *
@@ -526,5 +527,10 @@ abstract class Command
     public function allChat($msg, $chat, $from)
     {
 
+    }
+
+    public function isAdminsCommand(): bool
+    {
+        return $this->only_admins;
     }
 }

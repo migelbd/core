@@ -554,4 +554,18 @@ class Req
         ];
         return null;
     }
+
+
+    /**
+     * @param int $user_id
+     * @param bool $with_creator
+     * @return bool
+     */
+    public function isAdmin($user_id, $with_creator = true)
+    {
+        if ( $member = $this->getChatMember($user_id) ) {
+            return $member->getStatus() === 'administrator' || ($with_creator && $member->getStatus() === 'creator');
+        }
+        return false;
+    }
 }
