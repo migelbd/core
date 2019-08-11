@@ -30,7 +30,7 @@ abstract class UserCommand extends Command
     public function __construct(Telegram $telegram, Update $update = null)
     {
         if ( !$this->name ) {
-            $this->name = strtolower(rtrim((new \ReflectionClass($this))->getShortName(), 'Command'));
+            $this->name = strtolower(str_replace('Command', '', (new \ReflectionClass($this))->getShortName()));
             $this->usage = '/' . $this->name;
         }
         parent::__construct($telegram, $update);
