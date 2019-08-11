@@ -33,8 +33,7 @@ abstract class AdminCommand extends Command
     public function __construct(Telegram $telegram, Update $update = null)
     {
         if ( !$this->name ) {
-            $this->name = strtolower(rtrim(self::class, 'Command'));
-            $this->description = self::class;
+            $this->name = strtolower(rtrim((new \ReflectionClass($this))->getShortName(), 'Command'));
             $this->usage = '/' . $this->name;
         }
         parent::__construct($telegram, $update);
@@ -43,27 +42,30 @@ abstract class AdminCommand extends Command
 
     public function preExecute()
     {
-        if ( $this->isPrivateOnly() && $this->removeNonPrivateMessage() ) {
-            $message = $this->getMessage();
+        if ($this->getTelegram()->isAdmin()) {
+            if ( $this->isPrivateOnly() && $this->removeNonPrivateMessage() ) {
+                $message = $this->getMessage();
 
-            if ( $user = $message->getFrom() ) {
-                return Request::sendMessage(
-                    [
-                        'chat_id'    => $user->getId(),
-                        'parse_mode' => 'Markdown',
-                        'text'       => sprintf(
-                            "/%s комманда доступна только в ЛС бота.\n(`%s`)",
-                            $this->getName(),
-                            $message->getText()
-                        ),
-                    ]
-                );
+                if ( $user = $message->getFrom() ) {
+                    return Request::sendMessage(
+                        [
+                            'chat_id'    => $user->getId(),
+                            'parse_mode' => 'Markdown',
+                            'text'       => sprintf(
+                                "/%s комманда доступна только в ЛС бота.\n(`%s`)",
+                                $this->getName(),
+                                $message->getText()
+                            ),
+                        ]
+                    );
+                }
+
+                return Request::emptyResponse();
             }
-
-            return Request::emptyResponse();
+            return $this->execute();
         }
 
-        return $this->execute();
+        return Request::emptyResponse();
     }
 
     public function execute()

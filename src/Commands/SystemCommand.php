@@ -28,15 +28,6 @@ abstract class SystemCommand extends Command
     protected $need_mysql = false;
 
 
-    public function __construct(Telegram $telegram, Update $update = null)
-    {
-        if ( !$this->name ) {
-            $this->name = strtolower(rtrim(self::class, 'Command'));
-            $this->description = self::class;
-            $this->usage = '/' . $this->name;
-        }
-        parent::__construct($telegram, $update);
-    }
 
 
     public function preExecute()

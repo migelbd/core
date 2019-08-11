@@ -484,4 +484,74 @@ class Req
 
         return Request::leaveChat($data);
     }
+
+
+    /**
+     * @param string $question
+     * @param array $anwers
+     * @param null|bool $silent
+     * @return ServerResponse
+     * @throws \Exception
+     */
+    public function sendPoll($question, array $anwers, $silent = null)
+    {
+        $data = [
+            'chat_id'  => $this->chat_id,
+            'question' => $question,
+            'options'  => $anwers,
+        ];
+
+        if ( $silent !== null ) {
+            $data['disable_notification'] = $silent;
+        }
+
+        if ( $this->reply_to_message ) {
+            $data['reply_to_message_id'] = $this->reply_to_message;
+        }
+        if ( $this->reply_markup ) {
+            $data['reply_markup'] = $this->reply_markup;
+        }
+
+        if ( count($anwers) < 2 ) {
+            throw new \Exception('Anwers must be > 2');
+        }
+
+        return Request::sendPoll($data);
+    }
+
+
+    /**
+     * @param int $message_id
+     * @return ServerResponse
+     */
+    public function stopPoll($message_id)
+    {
+        $data = [
+            'chat_id'    => $this->chat_id,
+            'message_id' => $message_id,
+        ];
+        if ( $this->reply_markup ) {
+            $data['reply_markup'] = $this->reply_markup;
+        }
+        return Request::stopPoll($data);
+    }
+
+
+    public function setChatPermissions($can_send_messages = true, $can_send_media_messages = true, $can_send_polls = true, $can_send_other_messages = true, $can_add_web_page_previews = true, $can_change_info = true, $can_invite_users = true, $can_pin_messages = true)
+    {
+        $data = [
+            'chat_id'     => $this->chat_id,
+            'permissions' => [
+                'can_send_messages'         => $can_send_messages,
+                'can_send_media_messages'   => $can_send_media_messages,
+                'can_send_polls'            => $can_send_polls,
+                'can_send_other_messages'   => $can_send_other_messages,
+                'can_add_web_page_previews' => $can_add_web_page_previews,
+                'can_change_info'           => $can_change_info,
+                'can_invite_users'          => $can_invite_users,
+                'can_pin_messages'          => $can_pin_messages,
+            ],
+        ];
+        return null;
+    }
 }

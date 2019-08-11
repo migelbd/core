@@ -24,13 +24,13 @@ abstract class UserCommand extends Command
     protected $show_in_help = false;
     protected $usage = false;
     protected $delete = false;
+    protected $description = '';
 
 
     public function __construct(Telegram $telegram, Update $update = null)
     {
         if ( !$this->name ) {
-            $this->name = strtolower(rtrim(self::class, 'Command'));
-            $this->description = self::class;
+            $this->name = strtolower(rtrim((new \ReflectionClass($this))->getShortName(), 'Command'));
             $this->usage = '/' . $this->name;
         }
         parent::__construct($telegram, $update);
@@ -69,19 +69,25 @@ abstract class UserCommand extends Command
         $chat = $msg->getChat();
 
         $response = Request::emptyResponse();
-        if ( $chat->isSuperGroup() ) {
-            $response = $this->superChat($msg, $chat, $msg->getFrom());
-        }
 
-        if ( $chat->isGroupChat() ) {
-            $response = $this->groupChat($msg, $chat, $msg->getFrom());
-        }
 
-        if ( $chat->isPrivateChat() ) {
-            $response = $this->privateChat($msg, $chat, $msg->getFrom());
+        if ( $this->all_chat ) {
+            $response = $this->allChat($msg, $chat, $msg->getFrom());
         }
+        else {
+            if ( $chat->isSuperGroup() ) {
+                $response = $this->superChat($msg, $chat, $msg->getFrom());
+            }
 
-        if ($this->delete){
+            if ( $chat->isGroupChat() ) {
+                $response = $this->groupChat($msg, $chat, $msg->getFrom());
+            }
+
+            if ( $chat->isPrivateChat() ) {
+                $response = $this->privateChat($msg, $chat, $msg->getFrom());
+            }
+        }
+        if ( $this->delete ) {
             $this->deleteCmdMessage();
         }
         return $response;

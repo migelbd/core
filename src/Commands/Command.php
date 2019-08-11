@@ -86,6 +86,8 @@ abstract class Command
      */
     protected $show_in_help = true;
 
+    protected $all_chat = false;
+
     /**
      * Version
      *
@@ -121,11 +123,12 @@ abstract class Command
      */
     protected $config = [];
 
+
     /**
      * Constructor
      *
      * @param Telegram $telegram
-     * @param Update   $update
+     * @param Update $update
      */
     public function __construct(Telegram $telegram, Update $update = null)
     {
@@ -133,6 +136,7 @@ abstract class Command
         $this->setUpdate($update);
         $this->config = $telegram->getCommandConfig($this->name);
     }
+
 
     /**
      * Set update object
@@ -143,12 +147,13 @@ abstract class Command
      */
     public function setUpdate(Update $update = null)
     {
-        if ($update !== null) {
+        if ( $update !== null ) {
             $this->update = $update;
         }
 
         return $this;
     }
+
 
     /**
      * Pre-execute command
@@ -158,23 +163,25 @@ abstract class Command
      */
     public function preExecute()
     {
-        if ($this->need_mysql && !($this->telegram->isDbEnabled() && DB::isDbConnected())) {
+        if ( $this->need_mysql && !($this->telegram->isDbEnabled() && DB::isDbConnected()) ) {
             return $this->executeNoDb();
         }
 
-        if ($this->isPrivateOnly() && $this->removeNonPrivateMessage()) {
+        if ( $this->isPrivateOnly() && $this->removeNonPrivateMessage() ) {
             $message = $this->getMessage();
 
-            if ($user = $message->getFrom()) {
-                return Request::sendMessage([
-                    'chat_id'    => $user->getId(),
-                    'parse_mode' => 'Markdown',
-                    'text'       => sprintf(
-                        "/%s command is only available in a private chat.\n(`%s`)",
-                        $this->getName(),
-                        $message->getText()
-                    ),
-                ]);
+            if ( $user = $message->getFrom() ) {
+                return Request::sendMessage(
+                    [
+                        'chat_id'    => $user->getId(),
+                        'parse_mode' => 'Markdown',
+                        'text'       => sprintf(
+                            "/%s command is only available in a private chat.\n(`%s`)",
+                            $this->getName(),
+                            $message->getText()
+                        ),
+                    ]
+                );
             }
 
             return Request::emptyResponse();
@@ -183,6 +190,7 @@ abstract class Command
         return $this->execute();
     }
 
+
     /**
      * Execute command
      *
@@ -190,6 +198,7 @@ abstract class Command
      * @throws TelegramException
      */
     abstract public function execute();
+
 
     /**
      * Execution if MySQL is required but not available
@@ -211,6 +220,7 @@ abstract class Command
         return Request::sendMessage($data);
     }
 
+
     /**
      * Get update object
      *
@@ -221,23 +231,25 @@ abstract class Command
         return $this->update;
     }
 
+
     /**
      * Relay any non-existing function calls to Update object.
      *
      * This is purely a helper method to make requests from within execute() method easier.
      *
      * @param string $name
-     * @param array  $arguments
+     * @param array $arguments
      *
      * @return Command
      */
     public function __call($name, array $arguments)
     {
-        if ($this->update === null) {
+        if ( $this->update === null ) {
             return null;
         }
         return call_user_func_array([$this->update, $name], $arguments);
     }
+
 
     /**
      * Get command config
@@ -251,15 +263,16 @@ abstract class Command
      */
     public function getConfig($name = null)
     {
-        if ($name === null) {
+        if ( $name === null ) {
             return $this->config;
         }
-        if (isset($this->config[$name])) {
-            return $this->config[$name];
+        if ( isset($this->config[ $name ]) ) {
+            return $this->config[ $name ];
         }
 
         return null;
     }
+
 
     /**
      * Get telegram object
@@ -271,6 +284,7 @@ abstract class Command
         return $this->telegram;
     }
 
+
     /**
      * Get usage
      *
@@ -280,6 +294,7 @@ abstract class Command
     {
         return $this->usage;
     }
+
 
     /**
      * Get version
@@ -291,6 +306,7 @@ abstract class Command
         return $this->version;
     }
 
+
     /**
      * Get description
      *
@@ -300,6 +316,7 @@ abstract class Command
     {
         return $this->description;
     }
+
 
     /**
      * Get name
@@ -311,6 +328,7 @@ abstract class Command
         return $this->name;
     }
 
+
     /**
      * Get Show in Help
      *
@@ -320,6 +338,7 @@ abstract class Command
     {
         return $this->show_in_help;
     }
+
 
     /**
      * Check if command is enabled
@@ -331,6 +350,7 @@ abstract class Command
         return $this->enabled;
     }
 
+
     /**
      * If this command is intended for private chats only.
      *
@@ -340,6 +360,7 @@ abstract class Command
     {
         return $this->private_only;
     }
+
 
     /**
      * If this is a SystemCommand
@@ -351,6 +372,7 @@ abstract class Command
         return ($this instanceof SystemCommand);
     }
 
+
     /**
      * If this is an AdminCommand
      *
@@ -360,6 +382,7 @@ abstract class Command
     {
         return ($this instanceof AdminCommand);
     }
+
 
     /**
      * If this is a UserCommand
@@ -371,6 +394,7 @@ abstract class Command
         return ($this instanceof UserCommand);
     }
 
+
     /**
      * Delete the current message if it has been called in a non-private chat.
      *
@@ -380,15 +404,17 @@ abstract class Command
     {
         $message = $this->getMessage() ?: $this->getEditedMessage();
 
-        if ($message) {
+        if ( $message ) {
             $chat = $message->getChat();
 
-            if (!$chat->isPrivateChat()) {
+            if ( !$chat->isPrivateChat() ) {
                 // Delete the falsely called command message.
-                Request::deleteMessage([
-                    'chat_id'    => $chat->getId(),
-                    'message_id' => $message->getMessageId(),
-                ]);
+                Request::deleteMessage(
+                    [
+                        'chat_id'    => $chat->getId(),
+                        'message_id' => $message->getMessageId(),
+                    ]
+                );
 
                 return true;
             }
@@ -396,7 +422,6 @@ abstract class Command
 
         return false;
     }
-
 
 
     /**
@@ -417,15 +442,15 @@ abstract class Command
      * Helper to reply to a user directly.
      *
      * @param string $text
-     * @param array  $data
+     * @param array $data
      *
-     * @return ServerResponse
-     * @throws TelegramException
-     * Group Chat
      * @param Message $msg
      * @param Chat $chat
      * @param User $from
+     * @return ServerResponse
      * @return mixed
+     * @throws TelegramException
+     * Group Chat
      * @throws TelegramException
      */
     public function groupChat($msg, $chat, $from)
@@ -444,5 +469,18 @@ abstract class Command
     public function privateChat($msg, $chat, $from)
     {
         return Request::emptyResponse();
+    }
+
+
+    /** All Chat
+     * @param Message $msg
+     * @param Chat $chat
+     * @param User $from
+     * @return mixed
+     * @throws TelegramException
+     */
+    public function allChat($msg, $chat, $from)
+    {
+
     }
 }
