@@ -215,6 +215,37 @@ class Req
         }
     }
 
+    public function SendPhotoFromStream($stream, $text = false, $dis_notif = false, $dis_web = false)
+    {
+        try {
+            $data = ['chat_id' => $this->chat_id];
+
+            $data['photo'] = $stream;
+            if ( $text ) {
+                $data['caption'] = $text;
+            }
+            $data['parse_mode'] = $this->parse_mode;
+            if ( $dis_web ) {
+                $data['disable_web_page_preview'] = $dis_web;
+            }
+            if ( $dis_notif ) {
+                $data['disable_notification'] = $dis_notif;
+            }
+            if ( $this->reply_to_message ) {
+                $data['reply_to_message_id'] = $this->reply_to_message;
+            }
+            if ( $this->reply_markup ) {
+                $data['reply_markup'] = $this->reply_markup;
+            }
+
+            return Request::sendPhoto($data);
+        } catch ( TelegramException $e ) {
+            TelegramLog::error($e);
+
+            return false;
+        }
+    }
+
 
     /**
      * @param string $photo_id
