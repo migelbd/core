@@ -30,7 +30,7 @@ class Telegram
      *
      * @var string
      */
-    protected $version = '0.59.1';
+    protected $version = '0.60.0';
 
     /**
      * Telegram API key
@@ -468,7 +468,9 @@ class Telegram
 
             // Empty usage string denotes a non-executable command.
             // @see https://github.com/php-telegram-bot/core/issues/772#issuecomment-388616072
-            if ($command_obj !== null && $command_obj->getUsage() !== '') {
+            if (($command_obj === null && $type === 'command')
+                || ($command_obj !== null && $command_obj->getUsage() !== '')
+            ) {
                 $command = $command_tmp;
             }
         } else {
