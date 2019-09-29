@@ -187,8 +187,7 @@ class Req
     {
         try {
             $data = ['chat_id' => $this->chat_id];
-            [$width, $height] = getimagesize($photo_path);
-//            $tmp =
+
             $data['photo'] = Request::encodeFile($photo_path);
             if ( $text ) {
                 $data['caption'] = $text;
